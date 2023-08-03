@@ -6,6 +6,10 @@ param serviceConfig {
   port: int
 }
 
+param appConfig {
+  openAiEndpoint: string
+}
+
 import 'kubernetes@1.0.0' with {
   kubeConfig: kubeConfig
   namespace: 'default'
@@ -45,6 +49,12 @@ resource buildDeploy 'apps/Deployment@v1' = {
             ports: [
               {
                 containerPort: build.port
+              }
+            ]
+            env: [
+              {
+                name: 'OPENAPI_ENDPOINT'
+                value: appConfig.openAiEndpoint
               }
             ]
           }

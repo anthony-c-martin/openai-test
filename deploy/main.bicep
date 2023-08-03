@@ -24,7 +24,7 @@ module openAi 'modules/openai.bicep' = {
   params: {
     location: location
     openAiSettings: {
-      accountName: baseName
+      accountName: '${baseName}${uniqueString(resourceGroup().id)}'
       identity: aks.outputs.identity
     }
   }
@@ -41,6 +41,9 @@ module kubernetes './modules/kubernetes.bicep' = {
     serviceConfig: {
       image: 'ghcr.io/anthony-c-martin/openai-test:main'
       port: 80
+    }
+    appConfig: {
+      openAiEndpoint: openAi.outputs.endpoint
     }
   }
   dependsOn: [aks]

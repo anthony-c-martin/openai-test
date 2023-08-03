@@ -49,14 +49,19 @@ resource openAiModelDeployment 'Microsoft.CognitiveServices/accounts/deployments
   }
 }
 
-var cognitiveServicesRoleId = 'a97b65f3-24c7-4388-baec-2e87135dc908'
+resource cognitiveServicesRole 'Microsoft.Authorization/roleDefinitions@2022-05-01-preview' existing = {
+  scope: subscription()
+  name: 'a97b65f3-24c7-4388-baec-2e87135dc908'
+}
 
 resource serviceRoleassignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: openAiAccount
-  name: guid(cognitiveServicesRoleId, openAiSettings.identity.principalId, openAiAccount.id)
+  name: guid(cognitiveServicesRole.id, openAiSettings.identity.principalId, openAiAccount.id)
   properties: {
-    roleDefinitionId: cognitiveServicesRoleId
+    roleDefinitionId: cognitiveServicesRole.id
     principalId: openAiSettings.identity.principalId
     principalType: 'ServicePrincipal'
   }
 }
+
+output endpoint string = openAiAccount.properties.endpoint

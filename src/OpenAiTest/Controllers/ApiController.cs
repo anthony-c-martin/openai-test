@@ -1,9 +1,7 @@
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Mvc;
-using Bicep.Core.Emit;
-using Bicep.Core;
-using System.IO.Abstractions;
-using Bicep.Decompiler;
+using Azure.AI.OpenAI;
+using Azure.Identity;
 
 namespace OpenAiTest.Controllers;
 
@@ -18,8 +16,20 @@ public class ApiController : ControllerBase
     [Route("test")]
     public async Task<TestResponse> Test(TestRequest request)
     {
-        await Task.CompletedTask;
+        var client = new OpenAIClient(new("OPENAPI_ENDPOINT"), new DefaultAzureCredential());
 
-        return new(request.Message);
+        /*
+        TODO uncomment once auth has been set up!
+        var response = await client.GetCompletionsAsync(
+            "gpt-3.5-turbo",
+            request.Message);
+
+        foreach (var choice in response.Value.Choices)
+        {
+            return new(choice.Text);
+        }
+        */
+
+        throw new InvalidOperationException("Failed to get OpenAI response");
     }
 }
