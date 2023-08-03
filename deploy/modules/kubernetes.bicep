@@ -1,6 +1,11 @@
 @secure()
 param kubeConfig string
 
+param serviceConfig {
+  image: string
+  port: int
+}
+
 import 'kubernetes@1.0.0' with {
   kubeConfig: kubeConfig
   namespace: 'default'
@@ -9,8 +14,8 @@ import 'kubernetes@1.0.0' with {
 var build = {
   name: 'openai-test'
   version: 'latest'
-  image: 'ghcr.io/anthony-c-martin/openai-test:main'
-  port: 80
+  image: serviceConfig.image
+  port: serviceConfig.port
 }
 
 resource buildDeploy 'apps/Deployment@v1' = {

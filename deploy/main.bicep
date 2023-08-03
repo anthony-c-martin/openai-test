@@ -3,49 +3,47 @@ param dnsPrefix string
 param linuxAdminUsername string
 param sshRSAPublicKey string
 
-var osDiskSizeGB = 0
-var agentCount = 1
-var agentVmSize = 'Standard_B2s'
-
 #disable-next-line no-loc-expr-outside-params
 var location = resourceGroup().location
 
-resource aks 'Microsoft.ContainerService/managedClusters@2022-04-01' = {
-  name: baseName
-  location: location
-  properties: {
-    dnsPrefix: dnsPrefix
-    agentPoolProfiles: [
-      {
-        name: 'agentpool'
-        osDiskSizeGB: osDiskSizeGB
-        count: agentCount
-        vmSize: agentVmSize
-        osType: 'Linux'
-        mode: 'System'
-      }
-    ]
-    linuxProfile: {
+module aks 'modules/aks.bicep' = {
+  name: '${deployment().name}-aks'
+  params: {
+    aksConfig: {
+      adminPublicKey: sshRSAPublicKey
       adminUsername: linuxAdminUsername
-      ssh: {
-        publicKeys: [
-          {
-            keyData: sshRSAPublicKey
-          }
-        ]
-      }
+      clusterName: baseName
+      dnsPrefix: dnsPrefix
     }
-  }
-  identity: {
-    type: 'SystemAssigned'
+    location: location
   }
 }
 
-module kubernetes './modules/kubernetes.bicep' = {
-  name: 'buildbicep-deploy'
+module openAi 'modules/openai.bicep' = {
+  name: '${deployment().name}-openai'
   params: {
-    kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
+    location: location
+    openAiSettings: {
+      accountName: baseName
+      identity: aks.outputs.identity
+    }
   }
+}
+
+resource aksRef 'Microsoft.ContainerService/managedClusters@2022-04-01' existing = {
+  name: baseName
+}
+
+module kubernetes './modules/kubernetes.bicep' = {
+  name: '${deployment().name}-kubernetes'
+  params: {
+    kubeConfig: aksRef.listClusterAdminCredential().kubeconfigs[0].value
+    serviceConfig: {
+      image: 'ghcr.io/anthony-c-martin/openai-test:main'
+      port: 80
+    }
+  }
+  dependsOn: [aks]
 }
 
 var dnsLabel = kubernetes.outputs.dnsLabel

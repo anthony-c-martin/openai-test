@@ -1,6 +1,6 @@
 {
   "experimentalFeaturesEnabled": {
     "extensibility": true,
-    "paramsFiles": true
+    "userDefinedTypes": true
   }
 }
