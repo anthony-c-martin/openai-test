@@ -1,8 +1,16 @@
 @secure()
 param kubeConfig string
 
+import 'kubernetes@1.0.0' with {
+  kubeConfig: kubeConfig
+  namespace: 'default'
+}
+
+param location string
+
 param serviceConfig {
   image: string
+  dnsPrefix: string
   port: int
 }
 
@@ -12,26 +20,21 @@ param appConfig {
   apiKey: string
 }
 
-import 'kubernetes@1.0.0' with {
-  kubeConfig: kubeConfig
-  namespace: 'default'
-}
-
+var appName = 'openai-test'
 var build = {
-  name: 'openai-test'
   version: 'latest'
   image: serviceConfig.image
   port: serviceConfig.port
 }
 
-resource buildDeploy 'apps/Deployment@v1' = {
+resource apiDeploy 'apps/Deployment@v1' = {
   metadata: {
-    name: build.name
+    name: appName
   }
   spec: {
     selector: {
       matchLabels: {
-        app: build.name
+        app: appName
         version: build.version
       }
     }
@@ -39,14 +42,14 @@ resource buildDeploy 'apps/Deployment@v1' = {
     template: {
       metadata: {
         labels: {
-          app: build.name
+          app: appName
           version: build.version
         }
       }
       spec: {
         containers: [
           {
-            name: build.name
+            name: appName
             image: build.image
             ports: [
               {
@@ -70,11 +73,11 @@ resource buildDeploy 'apps/Deployment@v1' = {
   }
 }
 
-resource buildService 'core/Service@v1' = {
+resource apiService 'core/Service@v1' = {
   metadata: {
-    name: build.name
+    name: appName
     annotations: {
-      'service.beta.kubernetes.io/azure-dns-label-name': build.name
+      'service.beta.kubernetes.io/azure-dns-label-name': serviceConfig.dnsPrefix
     }
   }
   spec: {
@@ -85,9 +88,11 @@ resource buildService 'core/Service@v1' = {
       }
     ]
     selector: {
-      app: build.name
+      app: appName
     }
   }
 }
 
-output dnsLabel string = build.name
+var normalizedLocation = toLower(replace(location, ' ', ''))
+
+output endpoint string = 'http://${serviceConfig.dnsPrefix}.${normalizedLocation}.cloudapp.azure.com'

@@ -10,7 +10,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var apiKey = Environment.GetEnvironmentVariable("API_KEY") ?? throw new InvalidOperationException("API_KEY not set");
+var apiKey = Environment.GetEnvironmentVariable("API_KEY") ??
+    throw new InvalidOperationException("API_KEY not set");
 
 builder.Services.AddAuthentication()
     .AddApiKeyHeaderAuthentication(options => options.ApiKey = apiKey);

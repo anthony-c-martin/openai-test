@@ -40,8 +40,10 @@ module kubernetes './modules/kubernetes.bicep' = {
   name: '${deployment().name}-kubernetes'
   params: {
     kubeConfig: aksRef.listClusterAdminCredential().kubeconfigs[0].value
+    location: location
     serviceConfig: {
       image: 'ghcr.io/anthony-c-martin/openai-test:main'
+      dnsPrefix: '${baseName}${uniqueString(resourceGroup().id)}'
       port: 80
     }
     appConfig: {
@@ -52,7 +54,4 @@ module kubernetes './modules/kubernetes.bicep' = {
   dependsOn: [aks]
 }
 
-var dnsLabel = kubernetes.outputs.dnsLabel
-var normalizedLocation = toLower(replace(location, ' ', ''))
-
-output endpoint string = 'http://${dnsLabel}.${normalizedLocation}.cloudapp.azure.com'
+output endpoint string = kubernetes.outputs.endpoint
