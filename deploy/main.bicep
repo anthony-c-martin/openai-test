@@ -2,6 +2,8 @@ param baseName string
 param dnsPrefix string
 param linuxAdminUsername string
 param sshRSAPublicKey string
+@secure()
+param apiKey string
 
 #disable-next-line no-loc-expr-outside-params
 var location = resourceGroup().location
@@ -44,6 +46,7 @@ module kubernetes './modules/kubernetes.bicep' = {
     }
     appConfig: {
       openAiEndpoint: openAi.outputs.endpoint
+      apiKey: apiKey
     }
   }
   dependsOn: [aks]

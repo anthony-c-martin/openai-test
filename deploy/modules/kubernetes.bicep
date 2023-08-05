@@ -6,8 +6,10 @@ param serviceConfig {
   port: int
 }
 
+@secure()
 param appConfig {
   openAiEndpoint: string
+  apiKey: string
 }
 
 import 'kubernetes@1.0.0' with {
@@ -53,8 +55,12 @@ resource buildDeploy 'apps/Deployment@v1' = {
             ]
             env: [
               {
-                name: 'OPENAPI_ENDPOINT'
+                name: 'OPENAI_ENDPOINT'
                 value: appConfig.openAiEndpoint
+              }
+              {
+                name: 'API_KEY'
+                value: appConfig.apiKey
               }
             ]
           }

@@ -9,6 +9,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   AKS_RG_NAME: 'openai-test'
+  API_KEY: ${{ secrets.API_KEY }}
 
 jobs:
   push-image:

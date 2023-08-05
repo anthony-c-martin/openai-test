@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Microsoft.AspNetCore.Mvc;
 using Azure.AI.OpenAI;
 using Azure.Identity;
+using Azure;
 
 namespace OpenAiTest.Controllers;
 
@@ -16,20 +17,20 @@ public class ApiController : ControllerBase
     [Route("test")]
     public async Task<TestResponse> Test(TestRequest request)
     {
-        var client = new OpenAIClient(new("OPENAPI_ENDPOINT"), new DefaultAzureCredential());
+        var openAiEndpoint = Environment.GetEnvironmentVariable("OPENAI_ENDPOINT")
+            ?? throw new InvalidOperationException("OPENAI_ENDPOINT not set");
+        var openAiKey = Environment.GetEnvironmentVariable("OPENAI_KEY");
 
-        /*
-        TODO uncomment once auth has been set up!
+        var client = openAiKey is not null ?
+            new OpenAIClient(new(openAiEndpoint), new AzureKeyCredential(openAiKey)) :
+            new OpenAIClient(new(openAiEndpoint), new DefaultAzureCredential());
+
+        //https://www.windmill.dev/blog/windmill-ai
         var response = await client.GetCompletionsAsync(
-            "gpt-3.5-turbo",
+            "chatmodel",
             request.Message);
 
-        foreach (var choice in response.Value.Choices)
-        {
-            return new(choice.Text);
-        }
-        */
-
-        throw new InvalidOperationException("Failed to get OpenAI response");
+        var choice = response.Value.Choices.First();
+        return new(choice.Text);
     }
 }

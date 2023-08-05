@@ -27,7 +27,8 @@
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
-                "ASPNETCORE_URLS": "http://localhost:3000"
+                "ASPNETCORE_URLS": "http://localhost:3000",
+                "OPENAI_ENDPOINT": "https://openai-test2paxcjlpw7nie.openai.azure.com/"
             }
         },
         {
